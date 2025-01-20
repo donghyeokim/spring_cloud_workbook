@@ -1,33 +1,35 @@
 server:
-  port: 0 # random port
+  port: 0
 
 spring:
   application:
-    name: user-service
+    name: catalog-service
   h2:
     console:
       enabled: true
       settings:
         web-allow-others: true
       path: /h2-console
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    generate-ddl: true
+    defer-datasource-initialization: true
   datasource:
     driver-class-name: org.h2.Driver
     url: jdbc:h2:~/test;AUTO_SERVER=TRUE
     username: sa
     password:
-  jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
-    hibernate:
-      ddl-auto: create
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
+  sql:
+    init:
+      mode: always
+      data-locations: classpath:data.sql
 
 eureka:
   instance:
-    hostname: localhost
     instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+    hostname: localhost
   client:
     register-with-eureka: true
     fetch-registry: true
@@ -38,7 +40,8 @@ management:
   endpoints:
     web:
       exposure:
-        include: "info"  # info 엔드포인트만 노출
+        include: "info"  # info ?????? ??
 
-greeting:
-  message: Welcome to the Simple E-commerce.
+logging:
+  level:
+    com.example.catalogservice: debug
