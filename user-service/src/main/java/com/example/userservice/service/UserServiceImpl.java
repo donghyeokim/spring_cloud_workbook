@@ -25,6 +25,13 @@ public class UserServiceImpl implements UserService {
     private final BCryptPasswordEncoder passwordEncoder;
     private final ModelMapper mapper;
 
+    @Override
+    public UserDto getUserDetailsByEmail(String email) {
+        UserEntity userEntity = userRepository.findByEmail(email);
+
+        return mapper.map(userEntity, UserDto.class);
+    }
+
     /**
      * 스프링 시큐리티를 위한 회원 데이터 조회 쿼리
      * @param username
@@ -81,4 +88,6 @@ public class UserServiceImpl implements UserService {
                 .map(userEntity -> mapper.map(userEntity, UserDto.class))
                 .collect(Collectors.toList());
     }
+
+
 }

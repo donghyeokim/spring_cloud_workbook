@@ -30,10 +30,36 @@ spring:
             uri: lb://CATALOG-SERVICE
             predicates:
               - Path=/catalog-service/**
+
+          # 유저 서비스
+          # 로그인 -> 인증 불필요
+          - id: user-service
+            uri: lb://USER-SERVICE
+            predicates:
+              - Path=/user-service/login
+              - Method=POST
+            filters:
+              - RemoveRequestHeader=Cookie
+              - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+          # 회원가입 -> 인증 불필요
+          - id: user-service
+            uri: lb://USER-SERVICE
+            predicates:
+              - Path=/user-service/users
+              - Method=POST
+            filters:
+              - RemoveRequestHeader=Cookie
+              - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+          # 그 외의 요청 -> 인증 필요
           - id: user-service
             uri: lb://USER-SERVICE
             predicates:
               - Path=/user-service/**
+              - Method=GET
+            filters:
+              - RemoveRequestHeader=Cookie
+              - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+              - AuthorizationHeaderFilter
           - id: first-service
             uri: lb://FIRST-SERVICE
             predicates:
@@ -55,3 +81,6 @@ spring:
                   baseMessage: Hi, there.
                   preLogger: true
                   postLogger: true
+
+token:
+  secret: user_token
