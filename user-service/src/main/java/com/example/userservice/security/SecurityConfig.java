@@ -25,12 +25,14 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationConfiguration configuration) throws Exception {
-        http.csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll()
-                )
-                .addFilter(getAuthenticationFilter(configuration))
-                .headers(header -> header.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable));
+        http.csrf(AbstractHttpConfigurer::disable);
+        http.authorizeHttpRequests(auth -> auth
+                .requestMatchers("/actuator/**").permitAll());
+        http.authorizeHttpRequests(auth -> auth
+                    .anyRequest().permitAll()
+            )
+            .addFilter(getAuthenticationFilter(configuration));
+        http.headers(header -> header.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable));
         return http.build();
     }
 

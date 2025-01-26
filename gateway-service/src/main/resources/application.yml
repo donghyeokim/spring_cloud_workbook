@@ -10,6 +10,12 @@ eureka:
     service-url:
       defaultZone: http://localhost:8761/eureka
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: refresh, health, beans, httptrace
+
 spring:
   application:
     name: gateway-service
@@ -47,6 +53,15 @@ spring:
             predicates:
               - Path=/user-service/users
               - Method=POST
+            filters:
+              - RemoveRequestHeader=Cookie
+              - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+          # 엑츄에이터 요청
+          - id: user-service
+            uri: lb://USER-SERVICE
+            predicates:
+              - Path=/user-service/actuator/**
+              - Method=GET,POST
             filters:
               - RemoveRequestHeader=Cookie
               - RewritePath=/user-service/(?<segment>.*), /$\{segment}
