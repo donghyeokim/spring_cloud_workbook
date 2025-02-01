@@ -1,16 +1,24 @@
 package com.example.userservice.service;
 
+import com.example.userservice.client.OrderServiceClient;
 import com.example.userservice.dto.UserDto;
 import com.example.userservice.repository.UserEntity;
 import com.example.userservice.repository.UserRepository;
 import com.example.userservice.vo.ResponseOrder;
+import feign.FeignException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.core.env.Environment;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,12 +26,16 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final ModelMapper mapper;
+    private final RestTemplate restTemplate;
+    private final Environment env;
+    private final OrderServiceClient orderServiceClient;
 
     @Override
     public UserDto getUserDetailsByEmail(String email) {
@@ -34,6 +46,7 @@ public class UserServiceImpl implements UserService {
 
     /**
      * 스프링 시큐리티를 위한 회원 데이터 조회 쿼리
+     *
      * @param username
      * @return
      * @throws UsernameNotFoundException
@@ -76,8 +89,22 @@ public class UserServiceImpl implements UserService {
         // 2. 엔티티 -> dto 변환
         UserDto userDto = mapper.map(userEntity, UserDto.class);
         // 3. 주문 세팅
-        List<ResponseOrder> orders = new ArrayList<>();
-        userDto.setOrders(orders);
+        /* Using RestTemplate */
+//        String orderUrl = String.format(env.getProperty("order_service.url"), userId);
+//        ResponseEntity<List<ResponseOrder>> orderListResponse = restTemplate.exchange(orderUrl, HttpMethod.GET, null,
+//                new ParameterizedTypeReference<List<ResponseOrder>>() {
+//                });
+//        userDto.setOrders(orderListResponse.getBody());
+
+        /* Using FeignClient with try-catch */
+//        try {
+//            userDto.setOrders(orderServiceClient.getOrders(userId));
+//        } catch (FeignException e) {
+//            log.error(e.getMessage());
+//        }
+
+        /* Using FeignClient with ErrorDecoder */
+        userDto.setOrders(orderServiceClient.getOrders(userId));
         return userDto;
     }
 
@@ -88,6 +115,4 @@ public class UserServiceImpl implements UserService {
                 .map(userEntity -> mapper.map(userEntity, UserDto.class))
                 .collect(Collectors.toList());
     }
-
-
 }
