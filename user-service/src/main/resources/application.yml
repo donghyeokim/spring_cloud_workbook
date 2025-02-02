@@ -4,6 +4,9 @@ server:
 spring:
   application:
     name: user-service
+  zipkin:
+    base-url: http://localhost:9411
+    enabled: true
   rabbitmq:
     host: 127.0.0.1
     port: 5672
@@ -24,7 +27,7 @@ spring:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
       ddl-auto: create
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         format_sql: true
@@ -40,17 +43,33 @@ eureka:
       defaultZone: http://localhost:8761/eureka
 
 management:
+  tracing:
+    sampling:
+      probability: 1.0
+    propagation:
+      consume: B3
+      produce: B3
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans
   endpoints:
     web:
       exposure:
-        include: refresh, health, beans, info, busrefresh
+        include: "*"
 
 greeting:
   message: Welcome to the Simple E-commerce.
 
 logging:
   level:
-    com.example.userservice.client: DEBUG
+    com.example.userservice: DEBUG
+  pattern:
+    correlation: '%5p [${spring.application.name:}, %X{traceId:-}, %X{spanId:-}]'
+
+feign:
+  micrometer:
+    enabled: true
+
 
 
 #token:

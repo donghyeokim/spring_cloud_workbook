@@ -14,7 +14,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: refresh, health, beans, httptrace, busrefresh
+        include: "*"
 
 spring:
   application:
@@ -37,6 +37,14 @@ spring:
             uri: lb://ORDER-SERVICE
             predicates:
               - Path=/order-service/**
+          - id: order-service
+            uri: lb://ORDER-SERVICE
+            predicates:
+              - Path=/order-service/actuator/**
+              - Method=GET
+            filters:
+              - RemoveRequestHeader=Cookie
+              - RewritePath=/order-service/(?<segment>.*), /$\{segment}
           - id: catalog-service
             uri: lb://CATALOG-SERVICE
             predicates:
